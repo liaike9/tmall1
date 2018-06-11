@@ -50,14 +50,14 @@ class User(models.Model):
     )
     uid = models.AutoField('用户ID', primary_key=True)
 
-    name = models.CharField('用户名', max_length=64)
-    password = models.CharField(verbose_name='用户名', max_length=64)
+    name = models.CharField('用户名', max_length=255)
+    password = models.CharField(verbose_name='用户名', max_length=255)
     icon = models.ImageField(verbose_name=u'头像', max_length=100, upload_to='upload/img/%Y%m%d',
-                             default=u"apps/static/img/default.png")
+                             default=u"apps/static/img/default.png", null=True, blank=True)
     last_login = models.DateTimeField('最后一次登录',
                                       auto_created=True)
     create_date = models.DateTimeField('创建时间', auto_now_add=True, max_length=1)
-    status = models.IntegerField(verbose_name='状态', choices=STATUS_CHOICES)
+    status = models.IntegerField(verbose_name='状态', choices=STATUS_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return self.name

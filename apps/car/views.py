@@ -18,12 +18,24 @@ def add_car(request):
             ShopCar.objects.create(number=int(num), shop_id=int(shop_id), user_id=1)
     except:
         pass
-    return render(request, 'shop_detail.html', {'msg': 'success'})
+    return render(request, '', {'msg': 'success'})
 
 
 # 用户id
+# def shop_car(request):
+#     # user_id = request.session.get('userinfo').get('uid')
+#     user_id = request.session.get('userinfo').get('uid')
+#
+#     if user_id:
+#         cars = ShopCar.objects.filter(user_id=user_id)
+#         for car in cars:
+#             car.shop.image = car.shop.shopimage_set.filter(type='type_single').first()
+#         return render(request, 'cart.html', {'cars': cars})
+
 def shop_car(request):
-    cars = ShopCar.objects.filter(user_id=1)
-    for car in cars:
-        car.shop.images = car.shop.shopimage_set.filter(type='type_single').first()
-    return render(request, 'shop_car.html', {'cars': cars})
+    user_id = request.session.get('userinfo').get('uid')
+    if user_id:
+        cars = ShopCar.objects.filter(user_id=user_id)
+        for car in cars:
+            car.shop.image = car.shop.shopimage_set.filter(type='type_single').first()
+    return render(request, 'cart.html', {'cars': cars})

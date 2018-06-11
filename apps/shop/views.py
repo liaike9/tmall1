@@ -6,6 +6,9 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.core.urlresolvers import reverse
 
+from tmall import settings
+from tmall.settings import TEMP_MEDIA_URL
+
 """
 创建自定义的apps
 1.通过命令创建模块   startapp app_name
@@ -54,6 +57,13 @@ python manage.py createsuperuser
 9.1> http://127.0.0.1:8000/xadmin/
 9.2> 使用第8步的账号密码登录
 
+10> 定义全局的模板变量 
+备注    当我们的每个界面都需要用到某些数据的时候 可以定义全局的
+1>在项目的settings
+
+
+
+
 MTV开发
 1>在models中建立模型对象
 2>迁移
@@ -68,7 +78,8 @@ v
 from .models import Navigation, Category, Banner, Shop, Property, PropertyValue, Review
 
 
-#
+# 通过主表查子表
+# models
 def index(request):
     navigations = Navigation.objects.all()
     # 查询一级分类菜单数据
@@ -84,12 +95,11 @@ def index(request):
         # 商品信息
         shops = cate.shop_set.all()
         for shop in shops:
-            shop.images = shop.shopimage_set.all()
+            shop.image = shop.shopimage_set.filter(type='type_single').first()
         cate.shops = shops
 
     # 获取轮播图的数据
     banners = Banner.objects.all()
-
     # 获取商品信息
     # cate_shops = Category.objects.all()
     # for cate in cate_shops:
@@ -97,9 +107,15 @@ def index(request):
     #     for shop in shops:
     #         shop.images = shop.shopimage_set.all()
     #     cate.shops = shops
+    userinfo = {
+        'uid': request.session.get('uid'),
+        'name': request.session.get('name'),
+        'count': request.session.get('count'),
+    }
     return render(request, 'index.html', {'navigations': navigations,
                                           'cate_list': cate_list,
                                           'banners': banners,
+                                          'userinfo': userinfo,
                                           })
 
 
@@ -186,10 +202,10 @@ def shop_detail(request, sid):
     properties = Property.objects.filter(cate_id=shop.cate.cate_id)
     for property in properties:
         # 获取商品的参数通过shop_id 商品 propertyvalue
-        property.value = PropertyValue.objects.get(property_id=716)
+        property.value = PropertyValue.objects.filter(property=property, shop=shop).first()
     # 获取商品的评论信息
-    reviews = Review.objects.filter(shop_id=147)
-    return render(request, 'shop_detail.html', {'shop': shop, 'properties': properties, 'reviews': reviews})
+    reviews = Review.objects.filter(shop=shop)
+    return render(request, 'shop_page.html', {'shop': shop, 'properties': properties, 'reviews': reviews})
 
 
 """
@@ -210,10 +226,19 @@ def shop_detail(request, sid):
 #     return redirect(reverse('search1', args=(key,)))
 
 def search(request):
-    key = request.GET.get('keyword')
+    key = request.POST.get('keyword')
     shops = Shop.objects.filter(name__icontains=key)
     for shop in shops:
         # select  * from  shop_img  where type='type_single'
         shop.images = shop.shopimage_set.filter(type='type_single').values('shop_img_id', 'shop_id')
         shop.count = shop.review_set.count()
-    return render(request, 'search.html', {'shops': shops})
+    return render(request, 'shop_page.html', {'shops': shops})
+
+# def login(request):
+#     if request.method == 'GET':
+#         return render(request, 'login.html')
+#
+#
+# def register(request):
+#     if request.method == 'GET':
+#         return render(request, 'register.html')
